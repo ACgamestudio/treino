@@ -103,8 +103,12 @@ button{border:0;background:none;cursor:pointer}
 .ex.open{border-color:#2f5590;background:linear-gradient(180deg,#12203c,#0c1830)}
 .ex.done{opacity:.62}
 .ex-h{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px}
-.pips{display:flex;flex-direction:column;gap:3px;width:5px;flex:none}
-.pips i{height:7px;border-radius:2px;background:#22355c}
+.thumb{width:60px;height:60px;flex:none;border-radius:14px;overflow:hidden;border:1px solid #1b2c50;
+  background:radial-gradient(88% 128% at 50% 100%, #17325e 0%, #0a1224 72%)}
+.thumb svg{display:block;width:100%;height:100%}
+.ex.done .thumb{filter:saturate(.5)}
+.pips{display:flex;gap:4px;margin-top:7px}
+.pips i{height:4px;width:18px;border-radius:2px;background:#22355c;transition:background .2s}
 .pips i.on{background:var(--lime)}
 .ex-h .nm{font-weight:600;font-size:15.5px}
 .ex-h .mt{color:var(--mut);font-size:12.5px}
@@ -517,27 +521,59 @@ function props(kind,p,layer){
     default: return floor;
   }
 }
-function figure(anim,k){
-  const A=P[anim]||P.curl;
-  const p=pose(blend(A.a,A.b,k));
-  const skin='#C98C63', skinD='#A06E4B', shirt='#151B2B', cy='#31C9FF';
-  const back = limb(p.hip,p.knL,11,skinD)+limb(p.knL,p.anL,9,skinD)+limb(p.anL,p.toL,7,skinD)
-             + limb(p.shL,p.elL,9,skinD)+limb(p.elL,p.hdL,8,skinD);
-  const front= limb(p.hip,p.knR,12,skin)+limb(p.knR,p.anR,10,skin)+limb(p.anR,p.toR,8,skin)
-             + limb(p.shR,p.elR,10,skin)+limb(p.elR,p.hdR,9,skin)
-             + `<circle cx="${p.shR[0].toFixed(1)}" cy="${p.shR[1].toFixed(1)}" r="8" fill="${shirt}"/>`;
-  const torso = limb(p.hip,p.neck,26,shirt)
-    + `<circle cx="${p.neck[0].toFixed(1)}" cy="${p.neck[1].toFixed(1)}" r="12" fill="${shirt}"/>`
-    + `<circle cx="${p.hip[0].toFixed(1)}" cy="${p.hip[1].toFixed(1)}" r="12" fill="${shirt}"/>`
-    + limb(p.shL,p.shR,15,shirt)
-    + `<circle cx="${p.neck[0].toFixed(1)}" cy="${p.neck[1].toFixed(1)}" r="6" fill="${cy}" opacity=".5"/>`;
-  const hd=p.head, ang=(p.t||0);
-  const head = `<g transform="translate(${hd[0].toFixed(1)} ${hd[1].toFixed(1)}) rotate(${(ang*.5).toFixed(1)})">
-      <ellipse rx="20" ry="22" fill="#0d1930" opacity=".92"/>
-      <image href="${HEAD}" x="-21" y="-25" width="42" height="48" preserveAspectRatio="xMidYMid slice"/></g>`;
-  return `<svg viewBox="-110 -134 220 224" xmlns="http://www.w3.org/2000/svg">`
-    + `<g>${props(A.prop,p,'bg')}</g>${back}${torso}${head}${front}`
-    + `<g>${props(A.prop,p,'fg')}</g></svg>`;
+const COL={skin:'#C98C63',skinD:'#A06E4B',shirt:'#151B2B',cy:'#31C9FF'};
+/* ordem de desenho: fundo -> membros de trás -> tronco -> cabeça -> membros da frente -> equipamento da frente */
+const OPS=[
+ {t:'g',c:'bg'},
+ {t:'l',a:'hip',b:'knL',w:11,s:COL.skinD},
+ {t:'l',a:'knL',b:'anL',w:9, s:COL.skinD},
+ {t:'l',a:'anL',b:'toL',w:7, s:COL.skinD},
+ {t:'l',a:'shL',b:'elL',w:9, s:COL.skinD},
+ {t:'l',a:'elL',b:'hdL',w:8, s:COL.skinD},
+ {t:'l',a:'hip',b:'neck',w:26,s:COL.shirt},
+ {t:'c',p:'neck',r:12,f:COL.shirt},
+ {t:'c',p:'hip', r:12,f:COL.shirt},
+ {t:'l',a:'shL',b:'shR',w:15,s:COL.shirt},
+ {t:'c',p:'neck',r:6,f:COL.cy,o:.5},
+ {t:'head'},
+ {t:'l',a:'hip',b:'knR',w:12,s:COL.skin},
+ {t:'l',a:'knR',b:'anR',w:10,s:COL.skin},
+ {t:'l',a:'anR',b:'toR',w:8, s:COL.skin},
+ {t:'l',a:'shR',b:'elR',w:10,s:COL.skin},
+ {t:'l',a:'elR',b:'hdR',w:9, s:COL.skin},
+ {t:'c',p:'shR',r:8,f:COL.shirt},
+ {t:'g',c:'fg'}
+];
+/* o esqueleto é criado uma vez; depois só as coordenadas mudam.
+   assim a foto do rosto nunca recarrega e o movimento fica suave */
+function makeFig(){
+  let h='<svg viewBox="-110 -134 220 224" xmlns="http://www.w3.org/2000/svg">';
+  for(const o of OPS){
+    if(o.t==='g') h+=`<g></g>`;
+    else if(o.t==='l') h+=`<line stroke="${o.s}" stroke-width="${o.w}" stroke-linecap="round"/>`;
+    else if(o.t==='c') h+=`<circle r="${o.r}" fill="${o.f}"${o.o?` opacity="${o.o}"`:''}/>`;
+    else h+=`<g><ellipse rx="20" ry="22" fill="#0d1930" opacity=".92"/>`
+           + `<image href="${HEAD}" x="-21" y="-25" width="42" height="48" preserveAspectRatio="xMidYMid slice"/></g>`;
+  }
+  return h+'</svg>';
+}
+function paintFig(svg,anim,k){
+  const A=P[anim]||P.curl, p=pose(blend(A.a,A.b,k)), n=svg.children;
+  for(let i=0;i<OPS.length;i++){
+    const o=OPS[i], el=n[i]; if(!el) continue;
+    if(o.t==='g'){ const m=props(A.prop,p,o.c); if(el.dataset.m!==m){ el.innerHTML=m; el.dataset.m=m; } }
+    else if(o.t==='l'){ const a=p[o.a], b=p[o.b];
+      el.setAttribute('x1',a[0].toFixed(1)); el.setAttribute('y1',a[1].toFixed(1));
+      el.setAttribute('x2',b[0].toFixed(1)); el.setAttribute('y2',b[1].toFixed(1)); }
+    else if(o.t==='c'){ const a=p[o.p];
+      el.setAttribute('cx',a[0].toFixed(1)); el.setAttribute('cy',a[1].toFixed(1)); }
+    else el.setAttribute('transform',
+      `translate(${p.head[0].toFixed(1)} ${p.head[1].toFixed(1)}) rotate(${((p.t||0)*.5).toFixed(1)})`);
+  }
+}
+function fillThumb(box,anim){
+  box.innerHTML=makeFig();
+  paintFig(box.firstChild, anim, .82);
 }
 
 /* ============ som ============ */
@@ -625,15 +661,17 @@ function renderEx(){
     const chip = e.t==='cardio' ? `${e.min} min` : e.t==='hold' ? `${e.sets}x ${e.sec}s` : `${e.sets}x${e.reps}`;
     return `<div class="ex ${on?'open':''} ${all?'done':''}" data-e="${e.id}">
       <button class="ex-h" data-h="${e.id}">
-        <div class="pips">${d.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</div>
+        <div class="thumb" data-th="${e.an}"></div>
         <div style="flex:1;min-width:0">
           <div class="nm">${e.n}</div>
           <div class="mt">${e.s||lastTxt(e)}</div>
+          <div class="pips">${d.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</div>
         </div>
         <div class="chip">${all?'✓ ':''}${chip}</div>
       </button>
       <div class="ex-b">${on?body(e):''}</div></div>`;
   }).join('');
+  $$('[data-th]').forEach(t=>fillThumb(t,t.dataset.th));
   $$('[data-h]').forEach(b=>b.onclick=()=>{ openEx = openEx===b.dataset.h?null:b.dataset.h; stopCardio(); cardio_left=null; renderEx(); });
   bindBody();
   runAnim();
@@ -721,21 +759,19 @@ function updProg(){
 
 /* animação */
 function runAnim(){
-  clearInterval(animTimer);
+  cancelAnimationFrame(animTimer);
   const box=$('#fig'); if(!box) return;
   const e=cur.ex.find(x=>x.id===openEx); if(!e) return;
-  const A=P[e.an]||P.curl;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){ box.insertAdjacentHTML('beforeend', figure(e.an, .5)); return; }
-  const t0=performance.now();
-  const tick=()=>{
-    const ph=((performance.now()-t0)%(A.dur*2))/(A.dur*2);
-    const k=(1-Math.cos(ph*2*Math.PI))/2;
-    const svg=figure(e.an,k);
-    const old=box.querySelector('svg');
-    if(old) old.outerHTML=svg; else box.insertAdjacentHTML('beforeend',svg);
+  box.insertAdjacentHTML('beforeend', makeFig());
+  const svg=box.querySelector('svg'), A=P[e.an]||P.curl;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){ paintFig(svg,e.an,.82); return; }
+  const T=A.dur*2.4, t0=performance.now();
+  const loop=now=>{
+    const ph=((now-t0)%T)/T;
+    paintFig(svg, e.an, (1-Math.cos(ph*2*Math.PI))/2);
+    animTimer=requestAnimationFrame(loop);
   };
-  tick(); animTimer=setInterval(tick,60);
+  animTimer=requestAnimationFrame(loop);
 }
 
 /* cardio + isometria */
@@ -796,7 +832,7 @@ $('#finish').onclick=async()=>{
   sessions.unshift({d:todayKey(), w:cur.id, vol:Math.round(vol), min, sets:done});
   await store.set(K.ses, sessions);
   act=null; await store.set(K.act, null);
-  clearInterval(animTimer); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility='';
+  cancelAnimationFrame(animTimer); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility='';
   renderHome(); show('vHome'); toast(`Treino ${cur.id} fechado. ${Math.round(vol)} kg movidos.`);
 };
 
@@ -824,7 +860,7 @@ $('#wipe').onclick=async()=>{ loads={};sessions=[];act=null;
 function show(v){
   ['vHome','vWork','vHist','vCfg'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==v));
   $('#foot').classList.toggle('hidden', v!=='vWork');
-  if(v!=='vWork'){ clearInterval(animTimer); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility=''; }
+  if(v!=='vWork'){ cancelAnimationFrame(animTimer); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility=''; }
   else updProg();
   scrollTo({top:0});
 }
