@@ -182,6 +182,13 @@ button{border:0;background:none;cursor:pointer}
 .opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
 .opt{border:1px solid var(--line);border-radius:11px;padding:9px 14px;font-variant-numeric:tabular-nums;background:#0d1930}
 .opt.on{border-color:var(--cy);color:var(--cy);background:#0a2033}
+.urlin{width:100%;border:1px solid var(--line);background:#0a142a;border-radius:12px;padding:12px 14px;
+  font-size:14px;margin-bottom:9px}
+.urlin::placeholder{color:#46608c}
+.msg{font-size:13px;margin:9px 0 0;min-height:18px}
+.msg.ok{color:var(--lime)} .msg.err{color:#FF8A7A} .msg.wait{color:var(--am)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b4f77;margin-right:7px;vertical-align:1px}
+.dot.on{background:var(--lime);box-shadow:0 0 8px var(--lime)}
 .hint{color:var(--mut);font-size:13px;margin:4px 0 0}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);z-index:60;opacity:0;pointer-events:none;
@@ -288,6 +295,27 @@ html.locked,body.locked{overflow:hidden;height:100%}
       </div>
     </div>
     <div class="sec">
+      <div class="sec-h"><h3>Planilha do Google</h3><em id="shDot"><span class="dot"></span></em></div>
+      <input class="urlin" id="shUrl" type="url" inputmode="url" autocomplete="off"
+             placeholder="Cole o link do app da web (script.google.com/...)">
+      <div class="opts">
+        <button class="btn" id="shTest">Testar conexão</button>
+        <button class="btn" id="shPush">Enviar tudo</button>
+        <button class="btn" id="shPull">Puxar da planilha</button>
+      </div>
+      <p class="msg" id="shMsg"></p>
+      <p class="hint">Cada treino finalizado vira uma linha na planilha, com peso e repetição de cada série. As cargas sobem sozinhas alguns segundos depois de você digitar.</p>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><h3>Backup no aparelho</h3></div>
+      <div class="opts">
+        <button class="btn" id="bkOut">Baixar backup</button>
+        <button class="btn" id="bkInBtn">Importar backup</button>
+        <input type="file" id="bkIn" accept="application/json,.json" style="display:none">
+      </div>
+      <p class="hint">Um arquivo com todas as cargas e o histórico, pra guardar ou passar pra outro aparelho.</p>
+    </div>
+    <div class="sec">
       <div class="sec-h"><h3>Zerar dados</h3></div>
       <button class="btn" id="wipe">Apagar cargas e histórico</button>
       <p class="hint">Não dá pra desfazer.</p>
@@ -376,7 +404,7 @@ const nSets = e => e.t==='cardio' ? 1 : e.sets;
 const totalSets = w => w.ex.reduce((a,e)=>a+nSets(e),0);
 
 /* ============ som ============ */
-let AC=null, cfg={rest:50,snd:1};
+let AC=null, cfg={rest:50,snd:1,url:''};
 function beep(f=880,ms=130,vol=.15){
   if(!cfg.snd) return;
   try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)();
@@ -388,6 +416,54 @@ function beep(f=880,ms=130,vol=.15){
   }catch(e){}
 }
 function buzz(ms){ if(cfg.snd && navigator.vibrate) try{navigator.vibrate(ms)}catch(e){} }
+
+
+/* ============ planilha do Google ============ */
+const sheet={
+  ok(){ return !!(cfg.url && /^https:\/\/script\.google\.com\/macros\//.test(cfg.url.trim())); },
+  url(q){ const u=cfg.url.trim(); return q ? u+(u.includes('?')?'&':'?')+q : u; },
+  async post(payload){
+    if(!sheet.ok()) throw new Error('Link da planilha não configurado');
+    const r=await fetch(sheet.url(), {method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.erro||'a planilha recusou o envio');
+    return j;
+  },
+  async get(q){
+    if(!sheet.ok()) throw new Error('Link da planilha não configurado');
+    const r=await fetch(sheet.url(q), {redirect:'follow'});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.erro||'não deu pra ler a planilha');
+    return j;
+  },
+  cargas(){
+    const d={};
+    for(const id in loads){
+      const e=allEx().find(x=>x.id===id); if(!e) continue;
+      const m={}; let tem=false;
+      for(const i in loads[id]) if(loads[id][i]!=null){ m[i]=loads[id][i]; tem=true; }
+      if(tem) d[id]={nome:e.n, series:m};
+    }
+    return d;
+  },
+  treino(ses){
+    const w=W.find(x=>x.id===ses.w);
+    const series=[];
+    (ses.det||[]).forEach(x=>series.push(x));
+    return {tipo:'treino', data:ses.d, treino:ses.w, min:ses.min, volume:ses.vol,
+            series_total:ses.sets, series, foco:w?w.tag:''};
+  }
+};
+function allEx(){ return W.reduce((a,w)=>a.concat(w.ex),[]); }
+let syncT=null;
+function syncCargas(){
+  if(!sheet.ok()) return;
+  clearTimeout(syncT);
+  syncT=setTimeout(()=>{ sheet.post({tipo:'cargas', dados:sheet.cargas()}).then(()=>shDot(true)).catch(()=>shDot(false)); }, 4000);
+}
+function shDot(on){ const d=$('#shDot'); if(d) d.innerHTML=`<span class="dot ${on?'on':''}"></span>`; }
+function shSay(t,cls){ const m=$('#shMsg'); if(m){ m.textContent=t; m.className='msg '+(cls||''); } }
 
 /* ============ estado ============ */
 let loads={}, sessions=[], act=null, openEx=null, cardio=null, restT=null;
@@ -406,7 +482,7 @@ const todayKey=()=> new Date().toISOString().slice(0,10);
 async function boot(){
   loads = await store.get(K.loads) || {};
   sessions = await store.get(K.ses) || [];
-  cfg = Object.assign({rest:50,snd:1}, await store.get(K.cfg) || {});
+  cfg = Object.assign({rest:50,snd:1,url:''}, await store.get(K.cfg) || {});
   act = await store.get(K.act);
   const d=new Date();
   $('#today').textContent = d.toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'}).replace(/^./,c=>c.toUpperCase());
@@ -544,6 +620,7 @@ function saveLoad(id,i,v){
   loads[id]=loads[id]||{}; loads[id][i]= v===''?null:+v;
   if(i===0) for(let k=1;k<8;k++) if(loads[id][k]==null && v!=='') loads[id][k]=+v;
   store.set(K.loads, loads);
+  syncCargas();
 }
 function toggleSet(e,i){
   const was=act.done[e.id][i];
@@ -638,15 +715,27 @@ function startRest(e,i){
 $('#finish').onclick=async()=>{
   const done=cur.ex.reduce((a,e)=>a+act.done[e.id].filter(Boolean).length,0);
   if(!done) return;
-  let vol=0;
-  cur.ex.forEach(e=>{ if(e.t!=='w') return;
-    act.done[e.id].forEach((on,i)=>{ if(on) vol += ((loads[e.id]||{})[i]||0) * e.reps; }); });
+  let vol=0; const det=[];
+  cur.ex.forEach(e=>{
+    act.done[e.id].forEach((on,i)=>{
+      if(!on) return;
+      const peso=(loads[e.id]||{})[i]||0;
+      if(e.t==='w'){ vol += peso*e.reps; det.push({ex:e.n, serie:i+1, peso, reps:e.reps}); }
+      else if(e.t==='hold') det.push({ex:e.n, serie:i+1, peso, reps:e.sec+'s'});
+      else det.push({ex:e.n, serie:1, peso:'', reps:e.min+' min'});
+    });
+  });
   const min=Math.max(1,Math.round((Date.now()-(act.t0||Date.now()))/6e4));
-  sessions.unshift({d:todayKey(), w:cur.id, vol:Math.round(vol), min, sets:done});
+  const ses={d:todayKey(), w:cur.id, vol:Math.round(vol), min, sets:done, det};
+  sessions.unshift(ses);
   await store.set(K.ses, sessions);
   act=null; await store.set(K.act, null);
   stopClip(); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility='';
-  renderHome(); show('vHome'); toast(`Treino ${cur.id} fechado. ${Math.round(vol)} kg movidos.`);
+  renderHome(); show('vHome'); toast(`Treino ${ses.w} fechado. ${ses.vol} kg movidos.`);
+  if(sheet.ok()){
+    try{ await sheet.post(sheet.treino(ses)); await sheet.post({tipo:'cargas', dados:sheet.cargas()}); shDot(true); }
+    catch(err){ shDot(false); toast('Salvei aqui, mas a planilha não respondeu'); }
+  }
 };
 
 /* histórico + ajustes */
@@ -664,6 +753,56 @@ function renderCfg(){
   $$('[data-r]').forEach(b=>b.onclick=()=>{cfg.rest=+b.dataset.r;store.set(K.cfg,cfg);renderCfg();toast('Descanso de '+cfg.rest+'s')});
   $$('[data-s]').forEach(b=>{ b.classList.toggle('on', cfg.snd===+b.dataset.s);
     b.onclick=()=>{cfg.snd=+b.dataset.s;store.set(K.cfg,cfg);renderCfg();if(cfg.snd)beep(900,120)}; });
+
+  const inp=$('#shUrl'); inp.value=cfg.url||'';
+  inp.onchange=()=>{ cfg.url=inp.value.trim(); store.set(K.cfg,cfg);
+    shSay(sheet.ok()?'Link salvo. Toque em "Testar conexão".':'Esse link não parece um app da web do Apps Script.',
+          sheet.ok()?'ok':'err'); };
+  shDot(sheet.ok());
+
+  $('#shTest').onclick=async()=>{
+    cfg.url=inp.value.trim(); store.set(K.cfg,cfg);
+    shSay('Falando com a planilha…','wait');
+    try{ const j=await sheet.get('tipo=ping'); shDot(true);
+      shSay('Conectado'+(j.planilha?' em "'+j.planilha+'"':'')+'.','ok'); }
+    catch(err){ shDot(false); shSay('Não rolou: '+err.message,'err'); }
+  };
+  $('#shPush').onclick=async()=>{
+    shSay('Enviando tudo…','wait');
+    try{
+      await sheet.post({tipo:'lote', treinos:sessions.map(sheet.treino), cargas:sheet.cargas()});
+      shDot(true); shSay(`Mandei ${sessions.length} treino(s) e todas as cargas.`,'ok');
+    }catch(err){ shDot(false); shSay('Não rolou: '+err.message,'err'); }
+  };
+  $('#shPull').onclick=async()=>{
+    shSay('Puxando da planilha…','wait');
+    try{
+      const j=await sheet.get('tipo=estado');
+      if(j.cargas) { loads=j.cargas; await store.set(K.loads, loads); }
+      if(j.treinos) { sessions=j.treinos; await store.set(K.ses, sessions); }
+      shDot(true); renderHome();
+      shSay(`Recuperei ${Object.keys(loads).length} exercício(s) e ${sessions.length} treino(s).`,'ok');
+    }catch(err){ shDot(false); shSay('Não rolou: '+err.message,'err'); }
+  };
+
+  $('#bkOut').onclick=()=>{
+    const b=new Blob([JSON.stringify({app:'treino-do-andre', em:new Date().toISOString(), loads, sessions, cfg},null,1)],
+      {type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b); a.download=`treino-andre-${todayKey()}.json`;
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); toast('Backup baixado');
+  };
+  $('#bkInBtn').onclick=()=>$('#bkIn').click();
+  $('#bkIn').onchange=async ev=>{
+    const f=ev.target.files[0]; if(!f) return;
+    try{
+      const d=JSON.parse(await f.text());
+      if(d.loads){ loads=d.loads; await store.set(K.loads,loads); }
+      if(d.sessions){ sessions=d.sessions; await store.set(K.ses,sessions); }
+      renderHome(); toast('Backup restaurado');
+    }catch(err){ toast('Arquivo inválido'); }
+    ev.target.value='';
+  };
 }
 $('#wipe').onclick=async()=>{ loads={};sessions=[];act=null;
   await store.set(K.loads,{}); await store.set(K.ses,[]); await store.set(K.act,null);
