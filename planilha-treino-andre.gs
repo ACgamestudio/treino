@@ -18,6 +18,8 @@
  * 7. No app: engrenagem → Planilha do Google → cole o link → Testar conexão.
  *
  * As abas Treinos, Séries e Cargas são criadas sozinhas no primeiro envio.
+ * A aba Treinos guarda também as calorias estimadas, o peso corporal e o IMC
+ * do dia — dá pra montar um gráfico de evolução direto na planilha.
  *
  * MUDOU O CÓDIGO DEPOIS? Implantar → Gerenciar implantações → lápis →
  * Versão: Nova versão → Implantar. O link continua o mesmo.
@@ -63,8 +65,11 @@ function doGet(e) {
 
 /* ---------------------------------------------------------------- gravar */
 
+var COL_TREINOS = ['Data', 'Treino', 'Foco', 'Séries', 'Volume (kg)', 'Duração (min)',
+                   'Calorias (kcal)', 'Peso corporal (kg)', 'IMC'];
+
 function gravarTreino(d) {
-  var t = aba('Treinos', ['Data', 'Treino', 'Foco', 'Séries', 'Volume (kg)', 'Duração (min)']);
+  var t = aba('Treinos', COL_TREINOS);
 
   // não duplica o mesmo treino no mesmo dia se você mandar de novo
   var vals = t.getDataRange().getValues();
@@ -72,7 +77,8 @@ function gravarTreino(d) {
     if (texto(vals[i][0]) === d.data && String(vals[i][1]) === String(d.treino)) return;
   }
 
-  t.appendRow([d.data, d.treino, d.foco || '', d.series_total || 0, d.volume || 0, d.min || 0]);
+  t.appendRow([d.data, d.treino, d.foco || '', d.series_total || 0, d.volume || 0, d.min || 0,
+               d.calorias || 0, d.peso_corporal || '', d.imc || '']);
 
   var s = aba('Séries', ['Data', 'Treino', 'Exercício', 'Série', 'Peso (kg)', 'Reps']);
   var linhas = (d.series || []).map(function (x) {
@@ -124,9 +130,14 @@ function lerTreinos() {
   var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Treinos');
   if (!s || s.getLastRow() < 2) return [];
 
-  var vals = s.getRange(2, 1, s.getLastRow() - 1, 6).getValues();
+  var n = Math.max(6, s.getLastColumn());
+  var vals = s.getRange(2, 1, s.getLastRow() - 1, n).getValues();
   var out = vals.filter(function (r) { return r[0]; }).map(function (r) {
-    return { d: texto(r[0]), w: String(r[1]), sets: Number(r[3]) || 0, vol: Number(r[4]) || 0, min: Number(r[5]) || 0 };
+    return {
+      d: texto(r[0]), w: String(r[1]),
+      sets: Number(r[3]) || 0, vol: Number(r[4]) || 0, min: Number(r[5]) || 0,
+      kcal: Number(r[6]) || 0, peso: Number(r[7]) || null, imc: Number(r[8]) || null
+    };
   });
   out.sort(function (a, b) { return a.d < b.d ? 1 : -1; });   // mais recente primeiro
   return out;
@@ -137,11 +148,22 @@ function lerTreinos() {
 function aba(nome, cabecalho) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var s = ss.getSheetByName(nome);
+
   if (!s) {
     s = ss.insertSheet(nome);
     s.appendRow(cabecalho);
     s.getRange(1, 1, 1, cabecalho.length).setFontWeight('bold').setBackground('#0F1B35').setFontColor('#E9F1FF');
     s.setFrozenRows(1);
+    s.autoResizeColumns(1, cabecalho.length);
+    return s;
+  }
+
+  // aba antiga, criada antes das colunas novas: completa o cabeçalho
+  var atual = s.getRange(1, 1, 1, Math.max(1, s.getLastColumn())).getValues()[0];
+  if (atual.length < cabecalho.length) {
+    var faltam = cabecalho.slice(atual.length);
+    s.getRange(1, atual.length + 1, 1, faltam.length)
+     .setValues([faltam]).setFontWeight('bold').setBackground('#0F1B35').setFontColor('#E9F1FF');
     s.autoResizeColumns(1, cabecalho.length);
   }
   return s;

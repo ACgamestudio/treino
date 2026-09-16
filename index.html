@@ -64,8 +64,8 @@ button{border:0;background:none;cursor:pointer}
   border:1px solid rgba(49,201,255,.5);box-shadow:0 0 26px rgba(49,201,255,.35), inset 0 0 18px rgba(49,201,255,.22)}
 
 /* ---------- métricas ---------- */
-.stats{display:flex;gap:10px;margin:22px 0 6px}
-.stat{flex:1;border:1px solid var(--line);background:linear-gradient(180deg,#101d38,#0c1730);border-radius:14px;padding:10px 12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0 6px}
+.stat{border:1px solid var(--line);background:linear-gradient(180deg,#101d38,#0c1730);border-radius:14px;padding:10px 12px}
 .stat b{display:block;font-family:var(--disp);font-weight:400;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
 .stat small{color:var(--mut);font-size:11.5px}
 
@@ -196,6 +196,40 @@ button{border:0;background:none;cursor:pointer}
   transition:.25s;font-size:14.5px}
 .toast.up{opacity:1;transform:translate(-50%,0)}
 
+
+/* ---------- corpo, IMC e calorias ---------- */
+.bodyc{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1px solid var(--line);
+  border-radius:16px;padding:13px 15px;margin-top:10px;background:linear-gradient(120deg,#12203d 0%,#0c1730 62%)}
+.bodyc:hover{border-color:#2f5590}
+.bodyc .imc{font-family:var(--disp);font-weight:400;font-size:31px;line-height:1;color:var(--cy);font-variant-numeric:tabular-nums}
+.bodyc .cls{font-weight:600;font-size:14.5px}
+.bodyc .med{color:var(--mut);font-size:12.5px}
+.bodyc .go{margin-left:auto;color:var(--cy);font-size:22px;opacity:.8}
+.kcal{font-size:11.5px;color:#6d86b3;margin-top:6px;font-variant-numeric:tabular-nums}
+.kcal b{color:var(--am);font-weight:700}
+.prog .kc{display:block;color:var(--am);font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:2px}
+.flds{display:flex;gap:9px}
+.fld{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#0a142a;border-radius:12px;padding:0 12px}
+.fld span{color:var(--mut);font-size:12.5px;flex:none}
+.fld input{flex:1;min-width:0;height:46px;border:0;background:none;font-size:17px;font-weight:600;
+  text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.fld input::-webkit-outer-spin-button,.fld input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.fld input::placeholder{color:#46608c;font-weight:400}
+.fld em{font-style:normal;color:var(--mut);font-size:12.5px;flex:none}
+.imcbox{display:flex;align-items:baseline;gap:11px;border:1px solid var(--line);border-radius:13px;
+  padding:12px 14px;margin-top:9px;background:#0d1930}
+.imcbox b{font-family:var(--disp);font-weight:400;font-size:27px;color:var(--cy);font-variant-numeric:tabular-nums}
+.imcbox span{font-weight:600;font-size:14.5px}
+.imcbox small{color:var(--mut);margin-left:auto;font-size:11.5px;text-align:right;line-height:1.3}
+.resume{display:flex;align-items:center;gap:13px;width:100%;text-align:left;border:1px solid #4a3a12;border-radius:15px;
+  padding:13px 15px;margin-top:16px;background:linear-gradient(120deg,#26200f,#121428)}
+.resume b{display:block;font-size:15px;color:var(--am)}
+.resume .mt{color:var(--mut);font-size:12.5px}
+.resume .go{margin-left:auto;color:var(--am);font-size:22px}
+.kfoot{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:13px;padding:11px 14px;
+  margin:14px 0 4px;background:#0d1930;font-size:13.5px;color:var(--mut)}
+.kfoot b{color:var(--am);font-family:var(--disp);font-weight:400;font-size:22px;font-variant-numeric:tabular-nums}
+
 /* ---------- abertura ---------- */
 html.locked,body.locked{overflow:hidden;height:100%}
 .intro{position:fixed;inset:0;z-index:100;background:#000;display:block}
@@ -245,11 +279,16 @@ html.locked,body.locked{overflow:hidden;height:100%}
       </div>
     </div>
 
+    <button class="resume hidden" id="resume"></button>
+
     <div class="stats">
       <div class="stat"><b id="stSeq">0</b><small>treinos na semana</small></div>
       <div class="stat"><b id="stTot">0</b><small>treinos feitos</small></div>
       <div class="stat"><b id="stVol">0</b><small>toneladas levantadas</small></div>
+      <div class="stat"><b id="stKcal">0</b><small>kcal na semana</small></div>
     </div>
+
+    <button class="bodyc" id="bodyc"></button>
 
     <div class="sec">
       <div class="sec-h"><h3>Sua rotina</h3><em>A · B · C</em></div>
@@ -265,7 +304,7 @@ html.locked,body.locked{overflow:hidden;height:100%}
         <h2 id="wTitle">Treino A</h2>
         <div class="mt" id="wTag"></div>
       </div>
-      <div class="prog"><b id="wPct">0%</b><small id="wSets">0 de 0 séries</small></div>
+      <div class="prog"><b id="wPct">0%</b><small id="wSets">0 de 0 séries</small><small id="wKcal" class="kc">0 kcal</small></div>
     </div>
     <div class="bar" style="margin:6px 0 18px"><i id="wBar" style="width:0"></i></div>
     <div id="exList"></div>
@@ -283,6 +322,16 @@ html.locked,body.locked{overflow:hidden;height:100%}
     <button class="back" id="backHome3">← Voltar</button>
     <div class="wh"><div><h2>Ajustes</h2><div class="mt">Do jeito que você treina</div></div></div>
     <div class="sec">
+      <div class="sec-h"><h3>Seu peso e sua altura</h3></div>
+      <div class="flds">
+        <label class="fld"><span>Peso</span><input id="cPeso" type="number" inputmode="decimal" step="0.1" placeholder="—"><em>kg</em></label>
+        <label class="fld"><span>Altura</span><input id="cAlt" type="number" inputmode="numeric" step="1" placeholder="—"><em>cm</em></label>
+      </div>
+      <div class="imcbox" id="imcBox"></div>
+      <p class="hint">O peso é o que faz o cálculo de calorias funcionar. A altura entra só no IMC.</p>
+    </div>
+
+    <div class="sec">
       <div class="sec-h"><h3>Descanso entre séries</h3></div>
       <div class="opts" id="restOpts"></div>
       <p class="hint">O cronômetro dispara sozinho toda vez que você marca uma série.</p>
@@ -293,9 +342,12 @@ html.locked,body.locked{overflow:hidden;height:100%}
         <button class="opt" data-s="1">Ligado</button>
         <button class="opt" data-s="0">Desligado</button>
       </div>
+      <div class="opts"><button class="btn" id="notifBtn">Avisar quando o descanso acabar</button></div>
+      <p class="hint" id="notifMsg">Serve pra quando o celular estiver bloqueado ou em outro app.</p>
     </div>
     <div class="sec">
       <div class="sec-h"><h3>Planilha do Google</h3><em id="shDot"><span class="dot"></span></em></div>
+      <p class="hint hidden" id="shFixo">Link já embutido no código do app. Não precisa colar nada aqui.</p>
       <input class="urlin" id="shUrl" type="url" inputmode="url" autocomplete="off"
              placeholder="Cole o link do app da web (script.google.com/...)">
       <div class="opts">
@@ -350,19 +402,40 @@ html.locked,body.locked{overflow:hidden;height:100%}
 
 <script>
 
-/* ============ armazenamento ============ */
+/* ===================================================================
+   LINK DA PLANILHA — cole aqui dentro das aspas, uma vez só.
+   É o "URL do app da Web" do Apps Script, aquele que termina em /exec.
+   Depois disso o app já abre conectado, sem pedir nada.
+   =================================================================== */
+const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbzrSRU6jnKlK5BmTASqudHvETZIQSbZoVTTspS5vp46GGtfgkMV5b1hsDFaDy3R0ZzP/exec";
+/* exemplo: const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbXXXXXXXX/exec"; */
+
+/* ============ armazenamento — fica gravado no aparelho ============ */
 const mem = {};
 const store = {
-  async get(k){
-    try{ if(window.storage){ const r = await window.storage.get(k,false); if(r&&r.value) return JSON.parse(r.value); } }catch(e){}
+  get(k){
+    try{ const s = localStorage.getItem(k); if(s!==null) return JSON.parse(s); }catch(e){}
     return (k in mem) ? mem[k] : null;
   },
-  async set(k,v){
+  set(k,v){
     mem[k]=v;
-    try{ if(window.storage) await window.storage.set(k, JSON.stringify(v), false); }catch(e){}
+    try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
+    try{ if(window.storage) window.storage.set(k, JSON.stringify(v), false); }catch(e){}
   }
 };
 const K = {loads:'td1:loads', ses:'td1:sessions', cfg:'td1:cfg', act:'td1:active'};
+
+/* se você já usava a versão antiga, traz os dados de lá na primeira abertura */
+async function importarAntigo(){
+  if(!window.storage) return;
+  for(const k of Object.values(K)){
+    try{
+      if(localStorage.getItem(k)!==null) continue;
+      const r = await window.storage.get(k,false);
+      if(r && r.value) localStorage.setItem(k, r.value);
+    }catch(e){}
+  }
+}
 
 /* ============ programa ============ */
 const W = [
@@ -403,8 +476,59 @@ const W = [
 const nSets = e => e.t==='cardio' ? 1 : e.sets;
 const totalSets = w => w.ex.reduce((a,e)=>a+nSets(e),0);
 
+/* ============ gasto calórico ============
+   MET = o quanto o corpo trabalha em cada exercício (Compêndio de Atividade Física).
+   A conta é a clássica: kcal por minuto = MET × 3,5 × peso ÷ 200.
+   É estimativa, não medição — serve pra comparar um treino com o outro.        */
+const MET = {
+  a1:8.5, a2:3.8, a3:5.0, a4:3.5, a5:4.5, a6:5.0, a7:3.5, a8:3.5, a9:6.5,
+  b1:6.5, b2:3.8, b3:5.0, b4:6.0, b5:3.5, b6:4.5, b7:5.0, b8:3.5, b9:6.5,
+  c1:6.5, c2:3.8, c3:5.0, c4:5.0, c5:4.5, c6:4.0, c7:4.0, c8:3.5, c9:6.5
+};
+const PESO_PADRAO = 75;
+const pesoCorpo = () => (cfg.peso && cfg.peso > 25) ? +cfg.peso : PESO_PADRAO;
+const kcalMin = met => met * 3.5 * pesoCorpo() / 200;
+const kc = v => Math.round(v);
+
+/* uma série = o esforço (≈3s por repetição) + o descanso logo depois */
+function kcalSerie(e){
+  const seg = e.t==='hold' ? (e.sec||30) : (e.reps||10)*3;
+  return kcalMin(MET[e.id]||4)*(seg/60) + kcalMin(1.5)*(cfg.rest/60);
+}
+/* o que já foi queimado neste exercício */
+function kcalEx(e){
+  const d = (act && act.done[e.id]) || [];
+  if(e.t==='cardio'){
+    const min = (act && act.cmin && act.cmin[e.id]!=null) ? act.cmin[e.id] : (d[0] ? e.min : 0);
+    return kcalMin(MET[e.id]||6) * min;
+  }
+  return d.filter(Boolean).length * kcalSerie(e);
+}
+/* o que o exercício rende inteiro */
+function kcalMax(e){
+  return e.t==='cardio' ? kcalMin(MET[e.id]||6)*e.min : nSets(e)*kcalSerie(e);
+}
+const kcalTreino = () => cur ? cur.ex.reduce((a,e)=>a+kcalEx(e),0) : 0;
+const kcalPrev = w => w.ex.reduce((a,e)=>a+kcalMax(e),0);
+
+/* ============ IMC ============ */
+function imc(){
+  if(!cfg.peso || !cfg.altura || cfg.altura < 80) return null;
+  const m = cfg.altura/100;
+  return +(cfg.peso/(m*m)).toFixed(1);
+}
+function faixaIMC(v){
+  if(v < 18.5) return 'Abaixo do peso';
+  if(v < 25)   return 'Peso normal';
+  if(v < 30)   return 'Sobrepeso';
+  if(v < 35)   return 'Obesidade grau I';
+  if(v < 40)   return 'Obesidade grau II';
+  return 'Obesidade grau III';
+}
+const NOTA_IMC = 'O IMC é só peso e altura: ele não separa músculo de gordura, então quem treina pesado costuma aparecer mais alto na tabela.';
+
 /* ============ som ============ */
-let AC=null, cfg={rest:50,snd:1,url:''};
+let AC=null, cfg={rest:50,snd:1,url:URL_PLANILHA,peso:null,altura:null};
 function beep(f=880,ms=130,vol=.15){
   if(!cfg.snd) return;
   try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)();
@@ -452,7 +576,8 @@ const sheet={
     const series=[];
     (ses.det||[]).forEach(x=>series.push(x));
     return {tipo:'treino', data:ses.d, treino:ses.w, min:ses.min, volume:ses.vol,
-            series_total:ses.sets, series, foco:w?w.tag:''};
+            series_total:ses.sets, series, foco:w?w.tag:'',
+            calorias:ses.kcal||0, peso_corporal:ses.peso||'', imc:ses.imc||''};
   }
 };
 function allEx(){ return W.reduce((a,w)=>a.concat(w.ex),[]); }
@@ -490,25 +615,33 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const todayKey=()=> new Date().toISOString().slice(0,10);
 
 async function boot(){
+  await importarAntigo();
   loads = await store.get(K.loads) || {};
   sessions = await store.get(K.ses) || [];
-  cfg = Object.assign({rest:50,snd:1,url:''}, await store.get(K.cfg) || {});
+  cfg = Object.assign({rest:50,snd:1,url:'',peso:null,altura:null}, await store.get(K.cfg) || {});
+  if(URL_PLANILHA) cfg.url = URL_PLANILHA;          // o que está no código manda
   act = await store.get(K.act);
   const d=new Date();
   $('#today').textContent = d.toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'}).replace(/^./,c=>c.toUpperCase());
   const h=d.getHours();
   $('#greet').textContent = h<12?'Bom dia, André.' : h<18?'Boa tarde, André.' : 'Boa noite, André.';
   renderHome(); renderCfg();
+  /* se ficou treino aberto com série marcada, volta direto pra ele */
+  const marcadas = act ? Object.values(act.done||{}).flat().filter(Boolean).length : 0;
+  if(act && marcadas && W.some(w=>w.id===act.w)){ openWorkout(act.w); toast('Voltei de onde você parou'); }
 }
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('up'); setTimeout(()=>el.classList.remove('up'),1900); }
 
 /* ============ home ============ */
 function renderHome(){
-  const wk = sessions.filter(s=>{ const d=new Date(s.d+'T12:00'); return (Date.now()-d)/864e5 < 7; }).length;
+  const semana = sessions.filter(s=>{ const d=new Date(s.d+'T12:00'); return (Date.now()-d)/864e5 < 7; });
   const vol = sessions.reduce((a,s)=>a+(s.vol||0),0);
-  $('#stSeq').textContent = wk;
+  const kcalSemana = semana.reduce((a,s)=>a+(s.kcal||0),0);
+  $('#stSeq').textContent = semana.length;
   $('#stTot').textContent = sessions.length;
   $('#stVol').textContent = (vol/1000).toFixed(1).replace('.',',');
+  $('#stKcal').textContent = kcalSemana.toLocaleString('pt-BR');
+  renderCorpo(); renderRetomar();
   const last = sessions[0];
   const next = last ? W[(W.findIndex(w=>w.id===last.w)+1)%3].id : 'A';
   $('#heroP').textContent = last ? `Último foi o treino ${last.w}. Hoje o próximo da fila é o ${next}.`
@@ -518,8 +651,9 @@ function renderHome(){
     const tot = totalSets(w);
     const pct = Math.round(done/tot*100);
     const lastDone = sessions.find(s=>s.w===w.id);
-    const meta = done ? `${done} de ${tot} séries em andamento`
-      : lastDone ? `Feito ${diaTxt(lastDone.d)} · ${w.ex.length} exercícios` : `${w.ex.length} exercícios`;
+    const meta = (done ? `${done} de ${tot} séries em andamento`
+      : lastDone ? `Feito ${diaTxt(lastDone.d)} · ${w.ex.length} exercícios` : `${w.ex.length} exercícios`)
+      + ` · ~${kc(kcalPrev(w))} kcal`;
     return `<button class="wcard ${w.id.toLowerCase()}" data-w="${w.id}">
       <div class="letter">${w.id}</div>
       <div style="flex:1;min-width:0">
@@ -532,6 +666,37 @@ function renderHome(){
   }).join('');
   $$('.wcard').forEach(b=>b.onclick=()=>openWorkout(b.dataset.w));
 }
+function renderCorpo(){
+  const b = $('#bodyc'); if(!b) return;
+  const v = imc();
+  b.innerHTML = v
+    ? `<div class="imc">${String(v).replace('.',',')}</div>
+       <div style="min-width:0">
+         <div class="cls">IMC · ${faixaIMC(v)}</div>
+         <div class="med">${String(cfg.peso).replace('.',',')} kg · ${(cfg.altura/100).toFixed(2).replace('.',',')} m</div>
+       </div>
+       <div class="go">›</div>`
+    : `<div class="imc">—</div>
+       <div style="min-width:0">
+         <div class="cls">Coloque seu peso e sua altura</div>
+         <div class="med">É o que calcula o IMC e as calorias de cada série</div>
+       </div>
+       <div class="go">›</div>`;
+  b.onclick=()=>{ renderCfg(); show('vCfg'); setTimeout(()=>{const i=$('#cPeso'); if(i&&!cfg.peso) i.focus();},260); };
+}
+function renderRetomar(){
+  const el = $('#resume'); if(!el) return;
+  const feitas = act ? Object.values(act.done||{}).flat().filter(Boolean).length : 0;
+  if(!act || !feitas){ el.classList.add('hidden'); return; }
+  const w = W.find(x=>x.id===act.w); if(!w){ el.classList.add('hidden'); return; }
+  const quando = act.day===todayKey() ? 'de hoje' : diaTxt(act.day);
+  el.classList.remove('hidden');
+  el.innerHTML = `<div style="min-width:0">
+      <b>Treino ${act.w} ${quando} está aberto</b>
+      <div class="mt">${feitas} de ${totalSets(w)} séries marcadas · ninguém perdeu nada</div>
+    </div><div class="go">›</div>`;
+  el.onclick=()=>openWorkout(act.w);
+}
 function diaTxt(iso){
   const dif=Math.round((new Date(todayKey()+'T12:00')-new Date(iso+'T12:00'))/864e5);
   return dif===0?'hoje':dif===1?'ontem':`há ${dif} dias`;
@@ -540,14 +705,19 @@ function diaTxt(iso){
 /* ============ treino ============ */
 let cur=null;
 function openWorkout(id){
+  const marcadas = act ? Object.values(act.done||{}).flat().filter(Boolean).length : 0;
+  if(act && act.w!==id && marcadas &&
+     !confirm(`O treino ${act.w} está aberto com ${marcadas} série(s) marcada(s). Abrir o ${id} apaga o que está em andamento. Continuar?`)) return;
   cur = W.find(w=>w.id===id);
-  if(!act || act.w!==id || act.day!==todayKey()) act = {w:id, day:todayKey(), done:{}, t0:Date.now()};
-  cur.ex.forEach(e=>{ if(!act.done[e.id]) act.done[e.id]=new Array(nSets(e)).fill(false); });
+  if(!act || act.w!==id) act = {w:id, day:todayKey(), done:{}, cmin:{}, t0:Date.now()};
+  act.cmin = act.cmin || {};
+  cur.ex.forEach(e=>{ if(!act.done[e.id] || act.done[e.id].length!==nSets(e)) act.done[e.id]=new Array(nSets(e)).fill(false); });
   store.set(K.act, act);
   show('vWork');
   $('#wTitle').textContent = 'Treino '+id;
   $('#wTag').textContent = cur.tag;
-  openEx=null; renderEx(); updProg();
+  openEx = (act.open && cur.ex.some(e=>e.id===act.open)) ? act.open : null;
+  renderEx(); updProg(); abrirRest();
 }
 function renderEx(){
   $('#exList').innerHTML = cur.ex.map(e=>{
@@ -560,12 +730,17 @@ function renderEx(){
           <div class="nm">${e.n}</div>
           <div class="mt">${e.s||lastTxt(e)}</div>
           <div class="pips">${d.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</div>
+          <div class="kcal"><b>${kc(kcalEx(e))}</b> de ~${kc(kcalMax(e))} kcal</div>
         </div>
         <div class="chip">${all?'✓ ':''}${chip}</div>
       </button>
       <div class="ex-b">${on?body(e):''}</div></div>`;
-  }).join('');
-  $$('[data-h]').forEach(b=>b.onclick=()=>{ openEx = openEx===b.dataset.h?null:b.dataset.h; stopClip(); stopCardio(); cardio_left=null; renderEx(); });
+  }).join('') + `<div class="kfoot"><b>${kc(kcalTreino())}</b> kcal até agora · o treino inteiro dá cerca de ${kc(kcalPrev(cur))}</div>`;
+  $$('[data-h]').forEach(b=>b.onclick=()=>{
+    openEx = openEx===b.dataset.h ? null : b.dataset.h;
+    if(act){ act.open=openEx; store.set(K.act,act); }
+    stopClip(); stopCardio(); renderEx();
+  });
   bindBody();
   playClip();
 }
@@ -581,7 +756,7 @@ function body(e){
   if(e.t==='cardio'){
     return `<div class="fig" id="fig"><div class="tag">${nm}</div></div>
       <div class="cardio">
-        <div class="clock" id="cClock">${fmt(e.min*60)}</div>
+        <div class="clock" id="cClock">${fmt(segCardio(e))}</div>
         <div class="btns">
           <button class="btn cy" id="cGo">Começar</button>
           <button class="btn" id="cDone">Concluir</button>
@@ -616,7 +791,19 @@ function bindBody(){
   $$('[data-inc]').forEach(b=>b.onclick=()=>step(e,+b.dataset.inc,+1));
   $$('[data-dec]').forEach(b=>b.onclick=()=>step(e,+b.dataset.dec,-1));
   $$('[data-t]').forEach(b=>b.onclick=()=>toggleSet(e,+b.dataset.t));
-  const go=$('#cGo'); if(go){ go.onclick=()=>toggleCardio(e); $('#cDone').onclick=()=>{stopCardio();markCardio(e);} }
+  const go=$('#cGo');
+  if(go){
+    go.onclick=()=>toggleCardio(e);
+    $('#cDone').onclick=()=>{
+      const usou = !!(act.c && act.c.id===e.id);          // usou o cronômetro?
+      const feito = usou ? Math.max(0, e.min - segCardio(e)/60) : e.min;
+      stopCardio(); markCardio(e, feito);
+    };
+    const c = (act.c && act.c.id===e.id) ? act.c : null;
+    const cl = $('#cClock'); if(cl) cl.textContent = fmt(segCardio(e));
+    if(c && c.fim){ go.textContent='Pausar'; if(cl) cl.classList.add('run'); ligarTicker(e); }
+    else if(c && c.resta < e.min*60){ go.textContent='Continuar'; }
+  }
   const hg=$('#hGo'); if(hg) hg.onclick=()=>holdRun(e);
 }
 function step(e,i,dir){
@@ -645,9 +832,12 @@ function updProg(){
   const tot=totalSets(cur), done=cur.ex.reduce((a,e)=>a+act.done[e.id].filter(Boolean).length,0);
   const pct=Math.round(done/tot*100);
   $('#wPct').textContent=pct+'%'; $('#wSets').textContent=`${done} de ${tot} séries`;
+  $('#wKcal').textContent=`${kc(kcalTreino())} kcal`;
   $('#wBar').style.width=pct+'%';
   $('#foot').classList.toggle('hidden', done===0);
-  $('#finish').textContent = done===tot ? 'Finalizar treino 💪' : `Finalizar treino (${pct}%)`;
+  $('#finish').textContent = done===tot
+    ? `Finalizar · ${kc(kcalTreino())} kcal 💪`
+    : `Finalizar treino (${pct}% · ${kc(kcalTreino())} kcal)`;
   $('#finish').className = 'btn '+(done===tot?'lime':'');
 }
 
@@ -676,22 +866,57 @@ function playClip(){
 }
 function stopClip(){ cancelAnimationFrame(clipRaf); if(exVid){ try{exVid.pause();}catch(e){} exVid.removeAttribute('src'); exVid=null; } }
 
-/* cardio + isometria */
+/* cardio + isometria — quem conta o tempo é o relógio do aparelho,
+   então nada se perde se a tela apagar ou você trocar de app */
 const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-function toggleCardio(e){
-  if(cardio){ stopCardio(); $('#cGo').textContent='Continuar'; return; }
-  let left = cardio_left ?? e.min*60;
-  $('#cGo').textContent='Pausar'; $('#cClock').classList.add('run');
-  cardio=setInterval(()=>{
-    left--; cardio_left=left;
-    const c=$('#cClock'); if(c) c.textContent=fmt(left);
-    if(left<=3&&left>0) beep(700,90);
-    if(left<=0){ stopCardio(); beep(1200,420,.2); buzz([90,60,90]); markCardio(e); }
-  },1000);
+let cLast=-1;
+function segCardio(e){
+  const c = (act && act.c && act.c.id===e.id) ? act.c : null;
+  if(!c) return e.min*60;
+  return c.fim ? Math.max(0, Math.ceil((c.fim-Date.now())/1000)) : c.resta;
 }
-let cardio_left=null;
-function stopCardio(){ clearInterval(cardio); cardio=null; const c=$('#cClock'); if(c)c.classList.remove('run'); }
-function markCardio(e){ cardio_left=null; act.done[e.id]=[true]; store.set(K.act,act); openEx=null; renderEx(); updProg(); toast('Esteira concluída'); }
+function toggleCardio(e){
+  if(!act.c || act.c.id!==e.id) act.c = {id:e.id, resta:e.min*60, fim:null};
+  const c = act.c;
+  if(c.fim){
+    c.resta = Math.max(0, Math.ceil((c.fim-Date.now())/1000)); c.fim = null;
+    pararTicker(); $('#cGo').textContent='Continuar'; $('#cClock').classList.remove('run');
+  } else {
+    c.fim = Date.now() + c.resta*1000;
+    $('#cGo').textContent='Pausar'; $('#cClock').classList.add('run'); ligarTicker(e);
+  }
+  store.set(K.act, act);
+}
+function ligarTicker(e){ pararTicker(); cLast=-1; cardio=setInterval(()=>pintarCardio(e),250); pintarCardio(e); }
+function pararTicker(){ clearInterval(cardio); cardio=null; }
+function pintarCardio(e){
+  const left = segCardio(e);
+  if(left===cLast) return;
+  cLast = left;
+  const el=$('#cClock'); if(el) el.textContent = fmt(left);
+  if(left<=3 && left>0) beep(700,90);
+  if(left<=0){
+    pararTicker(); beep(1200,420,.2); buzz([90,60,90]);
+    avisar('Esteira concluída', e.min+' min fechados.');
+    markCardio(e, e.min);
+  }
+}
+function stopCardio(){
+  pararTicker();
+  const el=$('#cClock'); if(el) el.classList.remove('run');
+  if(act && act.c && act.c.fim){
+    act.c.resta = Math.max(0, Math.ceil((act.c.fim-Date.now())/1000));
+    act.c.fim = null; store.set(K.act, act);
+  }
+}
+function markCardio(e, min){
+  act.cmin = act.cmin || {};
+  act.cmin[e.id] = min!=null ? Math.max(0, +(+min).toFixed(2)) : e.min;
+  act.done[e.id] = [true]; act.c = null; act.open = null;
+  store.set(K.act, act);
+  openEx=null; renderEx(); updProg();
+  toast(`Esteira concluída · ${kc(kcalEx(e))} kcal`);
+}
 function holdRun(e){
   let left=e.sec; const c=$('#hClock'); c.classList.add('run');
   const id=setInterval(()=>{
@@ -702,26 +927,79 @@ function holdRun(e){
   },1000);
 }
 
-/* descanso */
+/* descanso — também preso ao relógio; volta certo depois de sair do app */
+let rLast=-1;
 function startRest(e,i){
-  const isLast = act.done[e.id].every(Boolean);
-  const nxt = isLast ? 'Próximo exercício te espera.' : `Série ${i+2} de ${act.done[e.id].length} na sequência.`;
-  clearInterval(restT);
-  let left=cfg.rest; const total=cfg.rest, arc=$('#dialArc'), L=2*Math.PI*33;
-  $('#restSub').textContent=nxt; $('#restNum').textContent=left;
-  arc.style.strokeDashoffset='0'; $('#rest').classList.add('up'); $('#foot').style.visibility='hidden';
-  const paint=()=>{ $('#restNum').textContent=left; arc.style.strokeDashoffset = (L*(1-left/total)).toFixed(1); };
-  paint();
-  restT=setInterval(()=>{
-    left--; paint();
-    if(left<=3&&left>0) beep(700,90);
-    if(left<=0){ clearInterval(restT); beep(1250,450,.22); buzz([100,70,100]);
-      $('#restSub').textContent='Acabou o descanso. Vai!';
-      setTimeout(()=>{$('#rest').classList.remove('up');$('#foot').style.visibility='';},1500); }
-  },1000);
-  $('#rAdd').onclick=()=>{ left+=15; paint(); };
-  $('#rSkip').onclick=()=>{ clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility=''; };
+  const ultima = act.done[e.id].every(Boolean);
+  act.rest = {
+    fim: Date.now() + cfg.rest*1000,
+    total: cfg.rest,
+    sub: ultima ? 'Próximo exercício te espera.' : `Série ${i+2} de ${act.done[e.id].length} na sequência.`
+  };
+  store.set(K.act, act);
+  abrirRest();
 }
+function abrirRest(){
+  const r = act && act.rest; if(!r) return;
+  if(r.fim <= Date.now()){ act.rest=null; store.set(K.act,act); return; }
+  $('#restSub').textContent = r.sub || '';
+  $('#rest').classList.add('up'); $('#foot').style.visibility='hidden';
+  clearInterval(restT); rLast=-1; pintarRest();
+  restT = setInterval(pintarRest, 250);
+}
+function pintarRest(){
+  const r = act && act.rest; if(!r){ clearInterval(restT); restT=null; return; }
+  const left = Math.max(0, Math.ceil((r.fim-Date.now())/1000));
+  if(left===rLast) return;
+  rLast = left;
+  const arc=$('#dialArc'), L=2*Math.PI*33;
+  $('#restNum').textContent = left;
+  arc.style.strokeDashoffset = (L*(1-left/r.total)).toFixed(1);
+  if(left<=3 && left>0) beep(700,90);
+  if(left<=0){
+    clearInterval(restT); restT=null;
+    beep(1250,450,.22); buzz([100,70,100]);
+    avisar('Acabou o descanso', 'Bora pra próxima série.');
+    $('#restSub').textContent='Acabou o descanso. Vai!';
+    act.rest=null; store.set(K.act,act);
+    setTimeout(()=>{ $('#rest').classList.remove('up'); $('#foot').style.visibility=''; }, 1500);
+  }
+}
+function fecharRest(){
+  clearInterval(restT); restT=null;
+  if(act) { act.rest=null; store.set(K.act,act); }
+  $('#rest').classList.remove('up'); $('#foot').style.visibility='';
+}
+$('#rAdd').onclick=()=>{ if(act&&act.rest){ act.rest.fim+=15000; act.rest.total+=15; store.set(K.act,act); rLast=-1; pintarRest(); } };
+$('#rSkip').onclick=fecharRest;
+
+/* aviso na tela de bloqueio, se você tiver autorizado */
+function avisar(titulo, texto){
+  try{
+    if(document.hidden && 'Notification' in window && Notification.permission==='granted')
+      new Notification(titulo, {body:texto, tag:'treino-andre'});
+  }catch(err){}
+}
+/* segura a tela acesa enquanto o treino roda */
+let wl=null;
+async function manterTela(on){
+  try{
+    if(on){ if(!wl && 'wakeLock' in navigator) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release',()=>{wl=null;}); } }
+    else if(wl){ await wl.release(); wl=null; }
+  }catch(err){}
+}
+/* ao voltar pro app, tudo é recalculado pelo relógio */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) return;
+  if(cur){ manterTela(true); abrirRest(); updProg(); }
+  const e = cur && cur.ex.find(x=>x.id===openEx);
+  if(e && e.t==='cardio' && act && act.c && act.c.id===e.id && act.c.fim) ligarTicker(e);
+});
+/* não deixa fechar sem querer no meio do treino */
+window.addEventListener('beforeunload', ev=>{
+  const marcadas = act ? Object.values(act.done||{}).flat().filter(Boolean).length : 0;
+  if(cur && marcadas){ ev.preventDefault(); ev.returnValue=''; return ''; }
+});
 
 /* finalizar */
 $('#finish').onclick=async()=>{
@@ -734,16 +1012,20 @@ $('#finish').onclick=async()=>{
       const peso=(loads[e.id]||{})[i]||0;
       if(e.t==='w'){ vol += peso*e.reps; det.push({ex:e.n, serie:i+1, peso, reps:e.reps}); }
       else if(e.t==='hold') det.push({ex:e.n, serie:i+1, peso, reps:e.sec+'s'});
-      else det.push({ex:e.n, serie:1, peso:'', reps:e.min+' min'});
+      else det.push({ex:e.n, serie:1, peso:'', reps:((act.cmin&&act.cmin[e.id]!=null)?Math.round(act.cmin[e.id]):e.min)+' min'});
     });
   });
   const min=Math.max(1,Math.round((Date.now()-(act.t0||Date.now()))/6e4));
-  const ses={d:todayKey(), w:cur.id, vol:Math.round(vol), min, sets:done, det};
+  const kcal=Math.round(kcalTreino());
+  const ses={d:todayKey(), w:cur.id, vol:Math.round(vol), min, sets:done, kcal,
+             peso:cfg.peso||null, imc:imc(), det};
   sessions.unshift(ses);
   await store.set(K.ses, sessions);
+  stopClip(); stopCardio(); clearInterval(restT); restT=null;
   act=null; await store.set(K.act, null);
-  stopClip(); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility='';
-  renderHome(); show('vHome'); toast(`Treino ${ses.w} fechado. ${ses.vol} kg movidos.`);
+  $('#rest').classList.remove('up'); $('#foot').style.visibility=''; manterTela(false);
+  renderHome(); show('vHome'); cur=null;
+  toast(`Treino ${ses.w} fechado. ${ses.vol} kg movidos e ${ses.kcal} kcal.`);
   if(sheet.ok()){
     try{ await sheet.post(sheet.treino(ses)); await sheet.post({tipo:'cargas', dados:sheet.cargas()}); shDot(true); }
     catch(err){ shDot(false); toast('Salvei aqui, mas a planilha não respondeu'); }
@@ -756,17 +1038,43 @@ function renderHist(){
     <div class="row"><div class="letter" style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
       font-family:var(--disp);font-size:18px;color:#05121e;background:linear-gradient(150deg,var(--cy),#1580b6)">${s.w}</div>
       <div><div class="d">Treino ${s.w}</div>
-      <div class="mt" style="color:var(--mut);font-size:12.5px">${new Date(s.d+'T12:00').toLocaleDateString('pt-BR')} · ${s.sets} séries · ${s.min} min</div></div>
+      <div class="mt" style="color:var(--mut);font-size:12.5px">${new Date(s.d+'T12:00').toLocaleDateString('pt-BR')} · ${s.sets} séries · ${s.min} min${s.kcal?' · <span style="color:var(--am)">'+s.kcal+' kcal</span>':''}</div></div>
       <div class="v">${(s.vol||0).toLocaleString('pt-BR')} kg</div></div>`).join('')
     : `<div class="empty">Nada aqui ainda.<br>Feche um treino e ele aparece nesta lista.</div>`;
 }
 function renderCfg(){
+  /* peso e altura */
+  const ip=$('#cPeso'), ia=$('#cAlt');
+  ip.value = cfg.peso ?? ''; ia.value = cfg.altura ?? '';
+  const gravarCorpo=()=>{
+    const pv=parseFloat(String(ip.value).replace(',','.')), av=parseFloat(String(ia.value).replace(',','.'));
+    cfg.peso   = (pv>25 && pv<400) ? pv : null;
+    cfg.altura = (av>80 && av<260) ? av : null;
+    store.set(K.cfg,cfg); pintarIMC(); renderHome();
+    if(cur){ renderEx(); updProg(); }
+  };
+  ip.oninput=gravarCorpo; ia.oninput=gravarCorpo;
+  pintarIMC();
+
+  /* avisos na tela de bloqueio */
+  const nb=$('#notifBtn'), nm=$('#notifMsg');
+  const estado=()=>{
+    if(!('Notification' in window)){ nb.classList.add('hidden'); nm.textContent='Este navegador não faz avisos fora do app.'; return; }
+    if(Notification.permission==='granted'){ nb.classList.add('hidden'); nm.textContent='Avisos ligados. O fim do descanso te chama mesmo com o celular bloqueado.'; }
+    else if(Notification.permission==='denied'){ nb.classList.add('hidden'); nm.textContent='Os avisos estão bloqueados nas configurações do navegador.'; }
+    else { nb.classList.remove('hidden'); nm.textContent='Serve pra quando o celular estiver bloqueado ou em outro app.'; }
+  };
+  nb.onclick=async()=>{ try{ await Notification.requestPermission(); }catch(e){} estado(); };
+  estado();
+
   $('#restOpts').innerHTML=[30,45,50,60,90].map(v=>`<button class="opt ${cfg.rest===v?'on':''}" data-r="${v}">${v}s</button>`).join('');
   $$('[data-r]').forEach(b=>b.onclick=()=>{cfg.rest=+b.dataset.r;store.set(K.cfg,cfg);renderCfg();toast('Descanso de '+cfg.rest+'s')});
   $$('[data-s]').forEach(b=>{ b.classList.toggle('on', cfg.snd===+b.dataset.s);
     b.onclick=()=>{cfg.snd=+b.dataset.s;store.set(K.cfg,cfg);renderCfg();if(cfg.snd)beep(900,120)}; });
 
-  const inp=$('#shUrl'); inp.value=cfg.url||'';
+  const inp=$('#shUrl');
+  if(URL_PLANILHA){ inp.classList.add('hidden'); $('#shFixo').classList.remove('hidden'); }
+  inp.value=cfg.url||'';
   inp.onchange=()=>{ cfg.url=inp.value.trim(); store.set(K.cfg,cfg);
     shSay(sheet.ok()?'Link salvo. Toque em "Testar conexão".':'Esse link não parece um app da web do Apps Script.',
           sheet.ok()?'ok':'err'); };
@@ -798,6 +1106,7 @@ function renderCfg(){
   };
 
   $('#bkOut').onclick=()=>{
+    /* backup leva peso, altura e calorias junto */
     const b=new Blob([JSON.stringify({app:'treino-do-andre', em:new Date().toISOString(), loads, sessions, cfg},null,1)],
       {type:'application/json'});
     const a=document.createElement('a');
@@ -816,7 +1125,16 @@ function renderCfg(){
     ev.target.value='';
   };
 }
-$('#wipe').onclick=async()=>{ loads={};sessions=[];act=null;
+function pintarIMC(){
+  const box=$('#imcBox'); if(!box) return;
+  const v=imc();
+  box.innerHTML = v
+    ? `<b>${String(v).replace('.',',')}</b><span>${faixaIMC(v)}</span><small>${NOTA_IMC}</small>`
+    : `<b>—</b><span>IMC</span><small>Preencha peso e altura acima.</small>`;
+}
+$('#wipe').onclick=async()=>{
+  if(!confirm('Apagar todas as cargas e todo o histórico? Não dá pra desfazer.')) return;
+  loads={};sessions=[];act=null;cur=null;
   await store.set(K.loads,{}); await store.set(K.ses,[]); await store.set(K.act,null);
   renderHome(); toast('Tudo zerado'); };
 
@@ -824,8 +1142,9 @@ $('#wipe').onclick=async()=>{ loads={};sessions=[];act=null;
 function show(v){
   ['vHome','vWork','vHist','vCfg'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==v));
   $('#foot').classList.toggle('hidden', v!=='vWork');
-  if(v!=='vWork'){ stopClip(); stopCardio(); cardio_left=null; clearInterval(restT); $('#rest').classList.remove('up'); $('#foot').style.visibility=''; }
-  else updProg();
+  if(v!=='vWork'){ stopClip(); stopCardio(); clearInterval(restT); restT=null;
+    $('#rest').classList.remove('up'); $('#foot').style.visibility=''; manterTela(false); }
+  else { updProg(); manterTela(true); }
   scrollTo({top:0});
 }
 $('#navHist').onclick=()=>{renderHist();show('vHist')};
